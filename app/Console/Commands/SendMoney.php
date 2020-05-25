@@ -40,7 +40,7 @@ class SendMoney extends Command
     public function handle(SendMoneyServices $services)
     {
         $url = env('URL_WEB_HOOK', '');
-        $countResult = $services->send($url);
+        $countResult = $services->send($url, 10);
         echo PHP_EOL . 'Удачно выполненных запросов: ' . $countResult . PHP_EOL;
     }
 }

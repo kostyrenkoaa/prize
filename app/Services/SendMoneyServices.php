@@ -20,9 +20,16 @@ class SendMoneyServices
     }
 
 
-    public function send($url)
+    /**
+     * Отправка денег в банк
+     *
+     * @param $url
+     * @param $rows
+     * @return int
+     */
+    public function send($url, $rows)
     {
-        $raffleResult = $this->raffleResultRepository->getFirsRows(10);
+        $raffleResult = $this->raffleResultRepository->getFirsRows($rows);
 
         $count = 0;
         foreach ($raffleResult as $result) {
@@ -34,12 +41,20 @@ class SendMoneyServices
                 $count++;
                 continue;
             }
-            //тут логируем ошибку
+            //todo добавить логирование
         }
 
         return $count;
     }
 
+    /**
+     * Непосредственная отправка денег в банк
+     *
+     * @param UserAccount $userAccount
+     * @param RaffleResult $raffleResult
+     * @param $url
+     * @return bool
+     */
     protected function sendRequest(UserAccount $userAccount, RaffleResult $raffleResult, $url)
     {
         $response = Http::get(

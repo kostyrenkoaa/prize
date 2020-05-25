@@ -37,6 +37,8 @@ class RaffleService
     }
 
     /**
+     * Данные о возможных призах
+     *
      * @param $id
      * @return array
      */
@@ -54,7 +56,14 @@ class RaffleService
         ];
     }
 
-    public function getCoefPrize($raffleId, $prizeName)
+    /**
+     * Определяет количество балловза приз
+     *
+     * @param $raffleId
+     * @param $prizeName
+     * @return int
+     */
+    public function getBallPrize($raffleId, $prizeName)
     {
         $raffle = $this->raffleRepository->find($raffleId);
         if (empty($raffle)) {
@@ -72,6 +81,12 @@ class RaffleService
         return 0;
     }
 
+    /**
+     * Определяет сумму в розыгрыше
+     *
+     * @param Raffle $raffle
+     * @return int
+     */
     protected function getMoney(Raffle $raffle)
     {
         $count = $raffle->money_count;
@@ -90,6 +105,12 @@ class RaffleService
         return $count;
     }
 
+    /**
+     * Информация о оставшихся призах
+     *
+     * @param $raffle
+     * @return array|mixed
+     */
     protected function getPrizeData($raffle)
     {
         $prizes = json_decode($raffle->prizes, true);
@@ -122,6 +143,12 @@ class RaffleService
         return $prizes;
     }
 
+    /**
+     * Обработка данных для фронта
+     *
+     * @param $prizes
+     * @return array
+     */
     protected function preparePrizeData($prizes)
     {
         $result = [];

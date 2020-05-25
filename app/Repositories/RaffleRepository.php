@@ -7,6 +7,8 @@ use App\Raffle;
 class RaffleRepository
 {
     /**
+     * Поиск пользователя по id
+     *
      * @param $id
      * @return Raffle|null
      */

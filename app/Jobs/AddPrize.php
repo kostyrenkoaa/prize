@@ -3,7 +3,6 @@
 namespace App\Jobs;
 
 use App\Services\RaffleResultServices;
-use App\Services\RaffleService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -29,7 +28,7 @@ class AddPrize implements ShouldQueue
     }
 
     /**
-     * Execute the job.
+     * Выполняет розыгрыш призов
      *
      * @param RaffleResultServices $services
      * @return void

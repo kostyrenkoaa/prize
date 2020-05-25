@@ -6,7 +6,6 @@ use App\Raffle;
 use App\RaffleResult;
 use App\Repositories\RaffleResultRepository;
 use App\Repositories\UserRepository;
-use App\User;
 use Illuminate\Support\Facades\Auth;
 
 class RaffleResultServices
@@ -31,6 +30,14 @@ class RaffleResultServices
         $this->userRepository = $userRepository;
     }
 
+    /**
+     * Принятие решения по полученному призу
+     *
+     * @param $status
+     * @param $resultId
+     * @param $userId
+     * @return array
+     */
     public function acceptPrize($status, $resultId, $userId)
     {
         $raffleResult = $this->raffleResultRepository->findInRevival($resultId, $userId);
@@ -59,6 +66,12 @@ class RaffleResultServices
         ];
     }
 
+    /**
+     * Добавление балов пользователю в случае отказа от денег или от приза
+     *
+     * @param RaffleResult $raffleResult
+     * @param $status
+     */
     protected function AddBallsWithChangeStatus(RaffleResult $raffleResult, $status)
     {
         $balls = $this->getCountBallsForChangeStatus($raffleResult, $status);
@@ -69,6 +82,13 @@ class RaffleResultServices
         $this->userRepository->addBalls($raffleResult->user_id, $balls);
     }
 
+    /**
+     * Расчет балов в случае отказа
+     *
+     * @param RaffleResult $raffleResult
+     * @param $status
+     * @return float|int
+     */
     protected function getCountBallsForChangeStatus(RaffleResult $raffleResult, $status)
     {
         if ($status == RaffleResult::STATUS_TRANSLATED_TO_BALLS) {
@@ -76,12 +96,19 @@ class RaffleResultServices
         }
 
         if ($status == RaffleResult::STATUS_REFUSAL_PRIZE) {
-            return $this->raffleService->getCoefPrize($raffleResult->raffle_id, $raffleResult->prize);
+            return $this->raffleService->getBallPrize($raffleResult->raffle_id, $raffleResult->prize);
         }
 
         return 0;
     }
 
+    /**
+     * Возвращает результат работы воркера по получению приза
+     *
+     * @param $resultId
+     * @param $userId
+     * @return array
+     */
     public function getResult($resultId, $userId)
     {
         $raffleResult = $this->raffleResultRepository->find($resultId);
@@ -104,15 +131,28 @@ class RaffleResultServices
         ];
     }
 
+    /**
+     * Создает запись(событие) для получения приза
+     *
+     * @param $raffleId
+     * @return RaffleResult
+     */
     public function createPrize($raffleId): RaffleResult
     {
         $raffleResult = new RaffleResult();
-        $raffleResult->user_id = Auth::id();
+        $raffleResult->user_id = Auth::id(); //todo убрать зависимость
         $raffleResult->raffle_id = $raffleId;
         $raffleResult->save();
         return $raffleResult;
     }
 
+    /**
+     * Выполняет розыгрыш призов
+     *
+     * @param $userId
+     * @param $resultId
+     * @throws \Exception
+     */
     public function addPrize($userId, $resultId)
     {
         //$userId Для проверок. Например для ограничения количества участия в конкурсах
@@ -134,6 +174,13 @@ class RaffleResultServices
         $raffleResult->save();
     }
 
+    /**
+     * Отрабатывает при выигрыше баллов //todo вынести в отдельный класс
+     *
+     * @param RaffleResult $raffleResult
+     * @param $dataForAddPrize
+     * @throws \Exception
+     */
     protected function prizeBallAdder(RaffleResult $raffleResult, $dataForAddPrize)
     {
         /** @var Raffle $raffle */
@@ -151,6 +198,12 @@ class RaffleResultServices
         $raffleResult->balls = $balls;
     }
 
+    /**
+     * Отрабатывает при выигрыше денег //todo вынести в отдельный класс
+     *
+     * @param RaffleResult $raffleResult
+     * @param $dataForAddPrize
+     */
     protected function prizeMoneyAdder(RaffleResult $raffleResult, $dataForAddPrize)
     {
         $realMoney = $dataForAddPrize['money'];
@@ -170,6 +223,12 @@ class RaffleResultServices
         $raffleResult->status = RaffleResult::STATUS_PENDING_DECISION;
     }
 
+    /**
+     * Отрабатывает при выигрыше приза //todo вынести в отдельный класс
+     *
+     * @param RaffleResult $raffleResult
+     * @param $dataForAddPrize
+     */
     protected function prizePrizeAdder(RaffleResult $raffleResult, $dataForAddPrize)
     {
         /** @var Raffle $raffle */
@@ -181,6 +240,12 @@ class RaffleResultServices
     }
 
 
+    /**
+     * Определяет, что выйграл пользователь
+     *
+     * @param $dataForAddPrize
+     * @return mixed|string
+     */
     protected function getPrizType($dataForAddPrize)
     {
         $coefficients = $this->getCoefficients($dataForAddPrize);
@@ -207,6 +272,12 @@ class RaffleResultServices
         return array_rand($coefficientsWithControl);
     }
 
+    /**
+     * Определяет коэффициенты получения разных призов
+     *
+     * @param $dataForAddPrize
+     * @return array
+     */
     protected function getCoefficients($dataForAddPrize)
     {
         /** @var Raffle $raffle */
@@ -230,6 +301,12 @@ class RaffleResultServices
         ];
     }
 
+    /**
+     * Последние оставшиеся призы
+     *
+     * @param $prizes
+     * @return mixed
+     */
     protected function getLastsPrizes($prizes)
     {
         foreach ($prizes as $keyPrize => $prize) {

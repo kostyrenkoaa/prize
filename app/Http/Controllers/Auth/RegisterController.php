@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Providers\RouteServiceProvider;
 use App\User;
+use App\UserAccount;
+use Faker\Factory;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -74,6 +76,13 @@ class RegisterController extends Controller
             $userData['is_admin'] = 1;
         }
 
-        return User::create($userData);
+        $user = User::create($userData);
+        $faker = Factory::create();
+        $userAccount = new UserAccount();
+        $userAccount->user_id = $user->id;
+        $userAccount->number = $faker->bankAccountNumber;
+        $userAccount->bank_id = $faker->swiftBicNumber;
+
+        return $user;
     }
 }

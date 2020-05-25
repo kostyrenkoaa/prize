@@ -32,7 +32,7 @@ class RafflesSeeder extends Seeder
             'money_coef' => rand(5, 10),
             'ball_coef' => rand(7, 11),
             'ball_max' => rand(10, 20),
-            'ball_min' => rand(1, 10),
+            'ball_min' => rand(6, 10),
         ];
     }
 
